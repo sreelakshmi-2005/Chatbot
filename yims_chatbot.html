@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YIMS Admission Enquiry Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chatbot-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 450px;
+            height: 650px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="rgba(255,255,255,0.1)"><path d="M0,50 Q250,0 500,50 T1000,50 L1000,100 L0,100 Z"/></svg>') repeat-x;
+            background-size: 100px 100%;
+        }
+
+        .header h1 {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 0.9em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chat-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bot-message {
+            background: white;
+            padding: 15px;
+            border-radius: 15px 15px 15px 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .bot-message::before {
+            content: '🎓';
+            position: absolute;
+            left: -10px;
+            top: -5px;
+            background: #1e3c72;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 15px;
+            border-radius: 15px 15px 5px 15px;
+            margin-left: 50px;
+            text-align: right;
+        }
+
+        .quick-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .quick-btn {
+            background: #e3f2fd;
+            border: 2px solid #1976d2;
+            color: #1976d2;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+        }
+
+        .quick-btn:hover {
+            background: #1976d2;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            outline: none;
+            font-size: 0.95em;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-color: #1976d2;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: transform 0.2s ease;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #1976d2;
+            animation: bounce 1.4s ease-in-out infinite both;
+        }
+
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            } 40% {
+                transform: scale(1);
+            }
+        }
+
+        .contact-info {
+            background: #f0f8ff;
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 10px;
+            border-left: 4px solid #1976d2;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #856404;
+            font-weight: bold;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #1976d2;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chatbot-container">
+        <div class="header">
+            <h1>YIMS Admission Bot</h1>
+            <p>Yuvakshetra Institute of Management Studies</p>
+        </div>
+        
+        <div class="chat-area" id="chatArea">
+            <div class="message">
+                <div class="bot-message">
+                    Welcome to YIMS! 🎓<br><br>
+                    I'm here to help you with admission enquiries for <strong>Yuvakshetra Institute of Management Studies</strong>, Palakkad.<br><br>
+                    How can I assist you today?
+                    
+                    <div class="quick-buttons">
+                        <button class="quick-btn" onclick="handleQuickResponse('courses')">Available Courses</button>
+                        <button class="quick-btn" onclick="handleQuickResponse('fees')">Fee Structure</button>
+                        <button class="quick-btn" onclick="handleQuickResponse('admission')">Admission Process</button>
+                        <button class="quick-btn" onclick="handleQuickResponse('eligibility')">Eligibility</button>
+                        <button class="quick-btn" onclick="handleQuickResponse('contact')">Contact Info</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <div class="input-container">
+                <input type="text" class="input-field" id="userInput" placeholder="Type your question here..." onkeypress="handleEnter(event)">
+                <button class="send-btn" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatArea = document.getElementById('chatArea');
+        const userInput = document.getElementById('userInput');
+
+        // FAQ Database
+        const faqData = {
+            courses: {
+                title: "Available Courses at YIMS",
+                content: `YIMS offers <span class="highlight">16+ courses</span> across 7 streams including:
+
+<strong>📚 Undergraduate Programs:</strong>
+• Bachelor of Business Administration (BBA)
+• Bachelor of Computer Applications (BCA)
+• B.Com (Commerce)
+• B.A. (Arts)
+
+<strong>🎓 Postgraduate Programs:</strong>
+• Master of Business Administration (MBA)
+• Master of Computer Applications (MCA)
+• M.Com (Commerce)
+• M.A. (Various specializations)
+
+<strong>💼 Professional Courses:</strong>
+• Diploma Programs
+• Certificate Courses
+
+All programs are affiliated with <strong>University of Calicut</strong>.`,
+                buttons: ['fees', 'admission', 'eligibility']
+            },
+            
+            fees: {
+                title: "Fee Structure",
+                content: `<strong>💰 Fee Information:</strong>
+
+• Annual fees starting from <span class="highlight">₹67,500</span>
+• Fees vary by course and category
+• Scholarships available for eligible students
+• Payment can be made in installments
+
+<strong>📋 Fee Components:</strong>
+• Tuition Fee
+• Development Fee  
+• Library Fee
+• Lab Fee (for applicable courses)
+• Examination Fee
+
+<em>Note: Fees are subject to change. Please contact the office for the most current fee structure.</em>`,
+                buttons: ['scholarship', 'admission', 'contact']
+            },
+            
+            admission: {
+                title: "Admission Process 2025-26",
+                content: `<strong>📅 Admissions are now OPEN for 2025-26!</strong>
+
+<strong>🔄 Application Process:</strong>
+1. Fill out the application form
+2. Submit required documents
+3. Pay application fee
+4. Attend counseling/interview (if required)
+5. Complete admission formalities
+
+<strong>📄 Required Documents:</strong>
+• Mark sheets of qualifying examination
+• Transfer Certificate
+• Conduct Certificate
+• Passport size photographs
+• ID proof (Aadhar/PAN)
+• Caste certificate (if applicable)
+
+<strong>⏰ Important Dates:</strong>
+Application deadline varies by course. Contact for specific dates.`,
+                buttons: ['eligibility', 'fees', 'contact']
+            },
+            
+            eligibility: {
+                title: "Eligibility Criteria",
+                content: `<strong>📝 General Eligibility:</strong>
+
+<strong>🎓 For UG Programs:</strong>
+• Plus Two (12th) or equivalent
+• Minimum percentage as per university norms
+• Entrance exam scores (where applicable)
+
+<strong>🎓 For PG Programs:</strong>
+• Bachelor's degree in relevant field
+• Minimum 50% marks (45% for SC/ST)
+• Entrance exam qualification (MAT/CAT/KMAT for MBA)
+
+<strong>🎯 Special Requirements:</strong>
+• Some courses may have specific subject requirements
+• Work experience preferred for certain programs
+• Age limits may apply for specific courses
+
+Contact us for course-specific eligibility details!`,
+                buttons: ['courses', 'admission', 'contact']
+            },
+            
+            contact: {
+                title: "Contact Information",
+                content: `<div class="contact-info">
+<strong>📍 Address:</strong><br>
+Yuvakshetra Institute of Management Studies<br>
+Ezhakkad P.O., Mundur<br>
+Palakkad - 678631, Kerala
+
+<strong>🌐 Website:</strong> www.yuvakshetra.org<br>
+<strong>📧 Email:</strong> Contact through website<br>
+<strong>📱 Phone:</strong> Available on website
+
+<strong>🕒 Office Hours:</strong><br>
+Monday - Friday: 9:00 AM - 4:00 PM<br>
+Saturday: 9:00 AM - 1:00 PM
+</div>
+
+<em>💡 Tip: Visit our website or contact the admission office for the most up-to-date information!</em>`,
+                buttons: ['admission', 'courses', 'location']
+            },
+            
+            scholarship: {
+                title: "Scholarships & Financial Aid",
+                content: `<strong>🏆 Scholarship Opportunities:</strong>
+
+• Merit-based scholarships
+• Government scholarships for eligible categories
+• Financial assistance for economically weaker sections
+• Sports and cultural activity scholarships
+
+<strong>📋 Application Process:</strong>
+• Apply during admission process
+• Submit required income/category certificates
+• Merit list based selection
+
+Contact the admission office for detailed scholarship information and application procedures.`,
+                buttons: ['fees', 'admission', 'contact']
+            },
+            
+            location: {
+                title: "Campus Location & Facilities",
+                content: `<strong>📍 Campus Information:</strong>
+
+<strong>🏫 Location:</strong>
+Located in Mundur, Palakkad district - one of Kerala's educational hubs.
+
+<strong>🌟 Key Features:</strong>
+• YIMS is certified as a <span class="highlight">Green Institution</span>
+• Well-equipped library and computer labs
+• Modern classrooms and seminar halls
+• Sports and recreational facilities
+• Hostel facilities available
+
+<strong>🚌 Transportation:</strong>
+Well-connected by road with regular bus services to major cities in Kerala.`,
+                buttons: ['facilities', 'admission', 'contact']
+            },
+            
+            placement: {
+                title: "Placements & Career Support",
+                content: `<strong>💼 Placement Highlights:</strong>
+
+• Students placed in prestigious organizations
+• Dedicated placement cell
+• Industry tie-ups and internship opportunities
+• Regular campus recruitment drives
+• Career guidance and training programs
+
+<strong>🎯 Career Support:</strong>
+• Resume building workshops
+• Interview preparation
+• Soft skills development
+• Industry interaction sessions
+
+Our alumni are successfully working in various sectors across India and abroad!`,
+                buttons: ['courses', 'admission', 'contact']
+            }
+        };
+
+        function addMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = isUser ? 'user-message' : 'bot-message';
+            messageContent.innerHTML = content;
+            
+            messageDiv.appendChild(messageContent);
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.id = 'typing';
+            typingDiv.innerHTML = `
+                YIMS Bot is typing...
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            `;
+            chatArea.appendChild(typingDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const typing = document.getElementById('typing');
+            if (typing) typing.remove();
+        }
+
+        function createQuickButtons(buttons) {
+            if (!buttons) return '';
+            
+            return `<div class="quick-buttons">
+                ${buttons.map(btn => {
+                    const labels = {
+                        'courses': 'Courses',
+                        'fees': 'Fees',
+                        'admission': 'Admission',
+                        'eligibility': 'Eligibility', 
+                        'contact': 'Contact',
+                        'scholarship': 'Scholarships',
+                        'location': 'Location',
+                        'facilities': 'Facilities',
+                        'placement': 'Placements'
+                    };
+                    return `<button class="quick-btn" onclick="handleQuickResponse('${btn}')">${labels[btn]}</button>`;
+                }).join('')}
+            </div>`;
+        }
+
+        function getBotResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            // Check for specific keywords and return appropriate responses
+            for (const [key, data] of Object.entries(faqData)) {
+                const keywords = {
+                    'courses': ['course', 'program', 'degree', 'study', 'bba', 'mba', 'bca', 'mca'],
+                    'fees': ['fee', 'cost', 'price', 'money', 'payment', 'amount'],
+                    'admission': ['admission', 'apply', 'application', 'enroll', 'join'],
+                    'eligibility': ['eligibility', 'qualify', 'requirement', 'criteria', 'marks'],
+                    'contact': ['contact', 'phone', 'email', 'address', 'location', 'office'],
+                    'scholarship': ['scholarship', 'financial aid', 'assistance', 'concession'],
+                    'placement': ['placement', 'job', 'career', 'company', 'recruit'],
+                    'location': ['where', 'location', 'address', 'campus', 'situated']
+                };
+                
+                if (keywords[key] && keywords[key].some(keyword => lowerMessage.includes(keyword))) {
+                    return `<strong>${data.title}</strong><br><br>${data.content}${createQuickButtons(data.buttons)}`;
+                }
+            }
+            
+            // General responses for common queries
+            if (lowerMessage.includes('hello') || lowerMessage.includes('hi')) {
+                return `Hello! 👋 Welcome to YIMS. I'm here to help you with admission queries. What would you like to know?${createQuickButtons(['courses', 'admission', 'fees', 'contact'])}`;
+            }
+            
+            if (lowerMessage.includes('thank')) {
+                return `You're welcome! 😊 If you have any more questions about YIMS admissions, feel free to ask. Good luck with your application!${createQuickButtons(['admission', 'contact'])}`;
+            }
+            
+            // Default response
+            return `I'd be happy to help you with information about YIMS admissions! 🎓<br><br>Please select one of the options below or ask me about:<br>• Available courses<br>• Fee structure<br>• Admission process<br>• Eligibility criteria<br>• Contact details${createQuickButtons(['courses', 'fees', 'admission', 'eligibility', 'contact'])}`;
+        }
+
+        function handleQuickResponse(type) {
+            const data = faqData[type];
+            if (data) {
+                addMessage(data.title, true);
+                
+                setTimeout(() => {
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        removeTypingIndicator();
+                        addMessage(`<strong>${data.title}</strong><br><br>${data.content}${createQuickButtons(data.buttons)}`);
+                    }, 1500);
+                }, 300);
+            }
+        }
+
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (message === '') return;
+
+            addMessage(message, true);
+            userInput.value = '';
+
+            // Show typing indicator
+            setTimeout(() => {
+                showTypingIndicator();
+                setTimeout(() => {
+                    removeTypingIndicator();
+                    addMessage(getBotResponse(message));
+                }, Math.random() * 1000 + 1000);
+            }, 500);
+        }
+
+        function handleEnter(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Focus on input field when page loads
+        window.onload = function() {
+            userInput.focus();
+        };
+    </script>
+</body>
+</html>
